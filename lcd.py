@@ -15,6 +15,8 @@ digitalPins = [
     16, 19, 13, 12
 ]
 
+TIME_TO_DELAY = 0.1
+
 
 def set_on_pin(pin, power):
     gpio.output(pin, gpio.HIGH if power else gpio.LOW)
@@ -35,15 +37,14 @@ def set_line(bits):
 
 def send(byte):
     bits = byte_to_bits(byte)
-    time_to_sleep = 0.1
     set_low(namedPins["EN"])
     set_line(bits[0:4])
     set_high(namedPins["EN"])
-    time.sleep(time_to_sleep)
+    time.sleep(TIME_TO_DELAY)
     set_low(namedPins["EN"])
     set_line(bits[4:8])
     set_high(namedPins["EN"])
-    time.sleep(time_to_sleep)
+    time.sleep(TIME_TO_DELAY)
     set_low(namedPins["EN"])
 
 

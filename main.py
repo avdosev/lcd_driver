@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
 
-
-import RPi.GPIO as gpio                 
-import time                             
+import time
 import lcd
 
-try:  
-  lcd.init()
-  lcd.send(0000)
-                        
-
+try:
+    lcd.init()
+    lcd.show_line("Hello, brow")
 except KeyboardInterrupt:
-    print("Exit pressed Ctrl+C")        
-
-finally:                    
-    print("End of program")             
+    print("Exit pressed Ctrl+C")
+finally:
+    print("End of program")
