@@ -3,19 +3,24 @@
 import RPi.GPIO as gpio
 import time
 
-# pins = [21,26,20]
-# lcdPins = [16,19,13,12]
-namedPins = {  # BCM
-    'RS': 21,
-    'RW': 26,
-    'EN': 20,
-}
 
-digitalPins = [
-    16, 19, 13, 12
-]
+RS = 21
+EN  = 20
 
-TIME_TO_DELAY = 0.1
+namedPins = [ RS, EN ]
+
+D4 = 16
+D5 = 19
+D6 = 13
+D7 = 12
+
+digitalPins = [ D4, D5, D6, D7 ]
+digitalPins.reverse()
+
+LCD_LINE_1 = 0x80 # LCD RAM address for the 1st line
+LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
+
+TIME_TO_DELAY = 0.001
 
 
 def set_on_pin(pin, power):
@@ -35,23 +40,26 @@ def set_line(bits):
         set_on_pin(digitalPins[i], bits[i])
 
 
-def send(byte):
+def send(byte, isCommand = False):
+    set_on_pin(RS, not isCommand)
     bits = byte_to_bits(byte)
-    set_low(namedPins["EN"])
+    
     set_line(bits[0:4])
-    set_high(namedPins["EN"])
-    time.sleep(TIME_TO_DELAY)
-    set_low(namedPins["EN"])
+    toggle()
     set_line(bits[4:8])
-    set_high(namedPins["EN"])
+    toggle()
+    
+
+def toggle():
     time.sleep(TIME_TO_DELAY)
-    set_low(namedPins["EN"])
+    set_high(EN)
+    time.sleep(TIME_TO_DELAY)
+    set_low(EN)
+    time.sleep(TIME_TO_DELAY)
 
 
 def send_command(command):
-    set_high(namedPins["RS"])
-    send(command)
-    set_low(namedPins["RS"])
+    send(command, True)
 
 
 def byte_to_bits(byte):
@@ -64,14 +72,15 @@ def byte_to_bits(byte):
 
 
 def clear():
-    send(0b00000001)
+    send_command(0b00000001)
 
 
 def cursor_to_home():
-    send(0b00000010)
+    send_command(0b00000010)
 
 
 def init():
+    gpio.setwarnings(False)
     gpio.setmode(gpio.BCM)
 
     for pin in namedPins.values():
@@ -80,7 +89,12 @@ def init():
     for pin in digitalPins:
         gpio.setup(pin, gpio.OUT)
 
-    send_command(0b00101000)
+    send_command(0x33) # 110011 Initialise
+    send_command(0x32) # 110010 Initialise
+    send_command(0x06) # 000110 Cursor move direction
+    send_command(0x0C) # 001100 Display On,Cursor Off, Blink Off
+    send_command(0x28) # 101000 Data length, number of lines, font size
+    send_command(0x01) # 000001 Clear display
 
 
 def show_char(char):
@@ -90,3 +104,7 @@ def show_char(char):
 def show_line(string):
     for char in string:
         show_char(char)
+        time.sleep(TIME_TO_DELAY)
+
+def end():
+    gpio.cleanup()

@@ -10,3 +10,4 @@ except KeyboardInterrupt:
     print("Exit pressed Ctrl+C")
 finally:
     print("End of program")
+lcd.end()
